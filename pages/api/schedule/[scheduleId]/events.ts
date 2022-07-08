@@ -8,7 +8,6 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const scheduleId = <string>req.query.scheduleId;
-  console.log(scheduleId);
   if (req.method === "PUT") {
     try {
       const updatedEvents = req.body.events;
