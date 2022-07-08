@@ -15,7 +15,7 @@ const Schedule: NextPage<{ schedule: ScheduleModel }> = (props) => {
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [bufferEvents, setBufferEvents] = useState<ScheduleEvent[]>([]);
+  const [bufferEvents, setBufferEvents] = useState<ScheduleEvent[]>(schedule.events);
 
   const handleEdit = async (updatedSchedule: any) => {
     setIsUpdating(true);
