@@ -1,0 +1,39 @@
+{
+  "name": "scheduleapp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.9.3",
+    "@emotion/styled": "^11.9.3",
+    "@fontsource/roboto": "^4.5.7",
+    "@hookform/resolvers": "^2.9.3",
+    "@mui/icons-material": "^5.8.4",
+    "@mui/material": "^5.8.6",
+    "@mui/x-data-grid": "^5.12.3",
+    "@mui/x-date-pickers": "^5.0.0-alpha.7",
+    "@types/uuid": "^8.3.4",
+    "firebase": "^9.8.4",
+    "install": "^0.13.0",
+    "next": "12.2.0",
+    "npm": "^8.13.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-hook-form": "^7.33.1",
+    "uuid": "^8.3.2",
+    "zod": "^3.17.3"
+  },
+  "devDependencies": {
+    "@types/node": "18.0.0",
+    "@types/react": "18.0.14",
+    "@types/react-dom": "18.0.5",
+    "eslint": "8.18.0",
+    "eslint-config-next": "12.2.0",
+    "typescript": "4.7.4"
+  }
+}
