@@ -8,6 +8,7 @@ import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Close";
 import WebAssetOffIcon from "@mui/icons-material/WebAssetOff";
 import CircleOutlinedIcon from "@mui/icons-material/CircleOutlined";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { v4 as uuidv4 } from "uuid";
 
 import {
@@ -23,11 +24,30 @@ import {
   GridRowId,
   GridRowModel,
   DataGrid,
+  GridValueGetterParams,
+  GridValueSetterParams,
+  GridPreProcessEditCellProps,
+  GridRenderCellParams,
+  useGridApiContext,
+  GridColDef,
 } from "@mui/x-data-grid";
-import { Alert, CircularProgress, Grid, Typography } from "@mui/material";
+import {
+  Alert,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  Grid,
+  Typography,
+} from "@mui/material";
 import { styled } from "@mui/material/styles";
-import Schedule, { ScheduleEvent, ScheduleEventSchema } from "../../model/Schedule";
-import useHttp from "../../hooks/useHttp";
+import Schedule, {
+  ScheduleEvent,
+  ScheduleEventSchema,
+} from "../../model/Schedule";
+import { number } from "zod";
+import { formatEventTime } from "../../util/EventTime";
+import DayOfWeek from "../../util/DayOfWeek";
+import EventTimePicker from "./EventTimePicker";
 
 const StyledBox = styled(Box)(({ theme }) => ({
   height: 300,
@@ -72,6 +92,64 @@ interface EditToolbarProps {
     newModel: (oldModel: GridRowModesModel) => GridRowModesModel
   ) => void;
 }
+
+const renderEventTimeCell = (params: GridRenderCellParams) => {
+  return <Box>{formatEventTime(params.value)}</Box>;
+};
+
+const EventTimeEditInputCell = (props: GridRenderCellParams<number>) => {
+  const [open, setOpen] = React.useState(false);
+  const [buffer, setBuffer] = React.useState(props.value);
+
+  const handleClickOpen = () => {
+    setBuffer(props.value);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    if (!isNaN(buffer)) {
+      setOpen(false);
+      console.log(buffer);
+
+      apiRef.current.setEditCellValue({ id, field, value: buffer });
+    } else {
+    }
+  };
+
+  const { id, value, field } = props;
+  const apiRef = useGridApiContext();
+
+  const handleChange = React.useCallback((newValue: number | null) => {
+    console.log(newValue);
+    setBuffer(newValue);
+  }, []);
+
+  return (
+    <Box sx={{ width: 1 }}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        onClick={handleClickOpen}
+      >
+        <Box>{formatEventTime(value)}</Box>
+        <AccessTimeIcon />
+      </Box>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogContent>
+          <EventTimePicker
+            time={value}
+            onTimeChange={handleChange}
+            mode="edit"
+          />
+        </DialogContent>
+      </Dialog>
+    </Box>
+  );
+};
+
+const renderEventTimeEditInputCell: GridColDef["renderCell"] = (params) => {
+  return <EventTimeEditInputCell {...params} />;
+};
 
 export default function ScheduleEventsTable(props: {
   schedule: Schedule;
@@ -125,8 +203,7 @@ export default function ScheduleEventsTable(props: {
   );
 
   const events = props.schedule.events;
-  
-  
+
   const initialRows = events.map((event) => ({
     id: event.id,
     title: event.title,
@@ -185,7 +262,6 @@ export default function ScheduleEventsTable(props: {
     }
   };
 
-  const http = useHttp();
   React.useEffect(() => {
     if (JSON.stringify(rows) !== JSON.stringify(initialRows)) {
       props.onEventsMismatch(rows);
@@ -244,25 +320,44 @@ export default function ScheduleEventsTable(props: {
       headerName: "Starts on",
       width: 180,
       editable: true,
-      preProcessEditCellProps(params) {
+      valueGetter: (params: GridValueGetterParams) => {
+        return params.value;
+      },
+      valueSetter: (params: GridValueSetterParams) => {
+        const startTime = parseInt(params.value);
+        return { ...params.row, startTime };
+      },
+      preProcessEditCellProps(params: GridPreProcessEditCellProps) {
         const result = ScheduleEventSchema.pick({ startTime: true }).safeParse({
-          startTime: params.props.value as number,
+          startTime: parseInt(params.props.value),
         });
+
         return { ...params.props, error: !result.success };
       },
+      renderCell: renderEventTimeCell,
+      renderEditCell: renderEventTimeEditInputCell,
     },
     {
       field: "endTime",
       headerName: "Ends at",
       width: 180,
       editable: true,
+      valueGetter: (params: GridValueGetterParams) => {
+        return params.value;
+      },
+      valueSetter: (params: GridValueSetterParams) => {
+        const endTime = parseInt(params.value);
+        return { ...params.row, endTime };
+      },
       preProcessEditCellProps(params) {
         const result = ScheduleEventSchema.pick({ endTime: true }).safeParse({
-          endTime: params.props.value as number,
+          endTime: parseInt(params.props.value),
         });
 
         return { ...params.props, error: !result.success };
       },
+      renderCell: renderEventTimeCell,
+      renderEditCell: renderEventTimeEditInputCell,
     },
     {
       field: "actions",
@@ -270,6 +365,9 @@ export default function ScheduleEventsTable(props: {
       headerName: "Actions",
       width: 100,
       cellClassName: "actions",
+      hideable: false,
+      sortable: false,
+      filterable: false,
       getActions: ({ id }) => {
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
 
@@ -349,6 +447,7 @@ export default function ScheduleEventsTable(props: {
           onRowEditStart={handleRowEditStart}
           onRowEditStop={handleRowEditStop}
           processRowUpdate={processRowUpdate}
+          onProcessRowUpdateError={(error) => console.log(error)}
           rowsPerPageOptions={[5, 10]}
           pagination
           components={{

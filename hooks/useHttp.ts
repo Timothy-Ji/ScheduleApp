@@ -7,11 +7,11 @@ const useHttp = () => {
       init?: RequestInit | undefined
     ): Promise<ReturnType> => {
       const response = await fetch(input, {
-        ...init,
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
+        ...init,
       });
 
       const data = await response.json();
@@ -27,12 +27,12 @@ const useHttp = () => {
       body?: T
     ): Promise<R> => {
       const response = await fetch(input, {
-        ...init,
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
+        ...init,
       });
 
       return response.json();
@@ -47,12 +47,12 @@ const useHttp = () => {
       body?: T
     ): Promise<R> => {
       const response = await fetch(input, {
-        ...init,
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
+        ...init,
       });
 
       return response.json();
@@ -67,12 +67,12 @@ const useHttp = () => {
       body?: T
     ): Promise<R> => {
       const response = await fetch(input, {
-        ...init,
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(body),
+        ...init,
       });
 
       return response.json();

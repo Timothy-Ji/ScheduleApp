@@ -7,14 +7,17 @@ import type { AppProps } from "next/app";
 import { ThemeProvider } from "@mui/material";
 import GlobalTheme from "../themes/Global";
 import { ThemeContextProvider } from "../context/ThemeContext";
+import { AuthContextProvider } from "../context/AuthContext";
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <ThemeProvider theme={GlobalTheme}>
-      <ThemeContextProvider>
-        <Component {...pageProps} />
-      </ThemeContextProvider>
-    </ThemeProvider>
+    <AuthContextProvider>
+      <ThemeProvider theme={GlobalTheme}>
+        <ThemeContextProvider>
+          <Component {...pageProps} />
+        </ThemeContextProvider>
+      </ThemeProvider>
+    </AuthContextProvider>
   );
 }
 

@@ -1,14 +1,4 @@
-import { firestore as db } from "../lib/firebase";
-import {
-  collection,
-  doc,
-  getDocs,
-  deleteDoc,
-  getDoc,
-  setDoc,
-  serverTimestamp,
-  updateDoc,
-} from "firebase/firestore/lite";
+import { firestore as db } from "./firebase-admin";
 import ScheduleModel, { ScheduleEvent } from "../model/Schedule";
 
 const timestampToDate = (schedule: any) => {
@@ -19,10 +9,11 @@ const timestampToDate = (schedule: any) => {
   };
 };
 
-const scheduleCollection = collection(db, "schedule");
+const schedules = db.collection("schedule");
+
 export const getSchedules = async (): Promise<ScheduleModel[]> => {
-  const scheduleSnapshot = await getDocs(scheduleCollection);
-  const scheduleList: ScheduleModel[] = scheduleSnapshot.docs.map((schedule) =>
+  const snapshot = await schedules.get();
+  const scheduleList: ScheduleModel[] = snapshot.docs.map((schedule) =>
     timestampToDate(schedule.data())
   );
 
@@ -30,8 +21,8 @@ export const getSchedules = async (): Promise<ScheduleModel[]> => {
 };
 
 export const getScheduleById = async (id: string): Promise<ScheduleModel> => {
-  const docSnap = await getDoc(doc(db, "schedule", id));
-  if (docSnap.exists()) {
+  const docSnap = await schedules.doc(id).get();
+  if (docSnap.exists) {
     return timestampToDate(docSnap.data());
   } else {
     return Promise.reject("Schedule does not exist");
@@ -39,14 +30,12 @@ export const getScheduleById = async (id: string): Promise<ScheduleModel> => {
 };
 
 export const addSchedule = async (schedule: any): Promise<ScheduleModel> => {
-  const newDocRef = doc(scheduleCollection);
-  await setDoc(newDocRef, {
+  const newDocRef = await schedules.add({
     ...schedule,
-    id: newDocRef.id,
-    dateCreated: serverTimestamp(),
-    lastModified: serverTimestamp(),
+    dateCreated: new Date(),
+    lastModified: new Date(),
   });
-
+  newDocRef.set({ id: newDocRef.id }, { merge: true });
   return { ...schedule, id: newDocRef.id };
 };
 
@@ -54,15 +43,18 @@ export const updateSchedule = async (
   id: string,
   updatedSchedule: ScheduleModel | { events: ScheduleEvent }
 ): Promise<ScheduleModel> => {
-  const scheduleRef = doc(db, "schedule", id);
+  const scheduleRef = schedules.doc(id);
 
-  await updateDoc(scheduleRef, {
+  await scheduleRef.update({
     ...updatedSchedule,
-    lastModified: serverTimestamp(),
+    lastModified: new Date(),
   });
-  return (await getDoc(scheduleRef)).data();
+
+  return (await scheduleRef.get()).data();
 };
 
-export const deleteSchedule = async (id: string): Promise<void> => {
-  return await deleteDoc(doc(db, "schedule", id));
+export const deleteSchedule = async (
+  id: string
+): Promise<FirebaseFirestore.WriteResult> => {
+  return await schedules.doc(id).delete();
 };

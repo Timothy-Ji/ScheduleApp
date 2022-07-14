@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -16,13 +16,16 @@ import LightModeIcon from "@mui/icons-material/LightMode";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import ThemeContext from "../../context/ThemeContext";
 import NextLink from "next/link";
+import AuthDialog from "../auth/AuthDialog";
+import AuthContext from "../../context/AuthContext";
 
 const ResponsiveAppBar = () => {
   const pages = [
     { name: "Home", href: "/" },
     { name: "My Schedules", href: "/my-schedules" },
   ];
-  const settings = ["Account", "Settings", "Logout"];
+
+  const settings = [/**"Account", "Settings",**/ "Logout"];
 
   const { theme, setTheme } = React.useContext(ThemeContext);
 
@@ -47,10 +50,7 @@ const ResponsiveAppBar = () => {
     setAnchorElUser(null);
   };
 
-  const handleSettingClicked = (setting: any) => {
-    if (setting.endsWith("Dark Mode")) setTheme("dark");
-    else if (setting === "Light Mode") setTheme("light");
-  };
+  const handleSettingClicked = (setting: any) => {};
 
   return (
     <AppBar position="static">
@@ -149,45 +149,47 @@ const ResponsiveAppBar = () => {
             ))}
           </Box>
 
-          <Tooltip title="Toggle theme" sx={{ marginRight: 3 }}>
+          {/* <Tooltip title="Toggle theme" sx={{ marginRight: 3 }}>
             <Box onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
               {theme === "light" ? <LightModeIcon /> : <DarkModeIcon />}
             </Box>
-          </Tooltip>
+          </Tooltip> */}
           <Box sx={{ display: "flex", flexGrow: 0 }}>
-            <Tooltip title="Open settings">
-              <Box onClick={handleOpenUserMenu}>
-                <AccountCircleIcon sx={{ p: 0 }} fontSize="large" />
-              </Box>
-            </Tooltip>
-            <Menu
-              sx={{ mt: "45px" }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              {settings.map((setting) => (
-                <MenuItem
-                  key={setting}
-                  onClick={() => {
-                    handleCloseUserMenu();
-                    handleSettingClicked(setting);
-                  }}
-                >
-                  <Typography textAlign="center">{setting}</Typography>
-                </MenuItem>
-              ))}
-            </Menu>
+            <Box>
+              <Tooltip title="Open settings">
+                <Box onClick={handleOpenUserMenu}>
+                  <AccountCircleIcon sx={{ p: 0 }} fontSize="large" />
+                </Box>
+              </Tooltip>
+              <Menu
+                sx={{ mt: "45px" }}
+                id="menu-appbar"
+                anchorEl={anchorElUser}
+                anchorOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "right",
+                }}
+                open={Boolean(anchorElUser)}
+                onClose={handleCloseUserMenu}
+              >
+                {settings.map((setting) => (
+                  <MenuItem
+                    key={setting}
+                    onClick={() => {
+                      handleCloseUserMenu();
+                      handleSettingClicked(setting);
+                    }}
+                  >
+                    <Typography textAlign="center">{setting}</Typography>
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Box>
           </Box>
         </Toolbar>
       </Container>

@@ -1,6 +1,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Layout from "../components/layout/Layout";
+import EventTimePicker from "../components/schedule/EventTimePicker";
 
 const Home: NextPage = () => {
   return (
@@ -14,7 +15,8 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main></main>
+      <main>
+      </main>
 
       <footer></footer>
     </div>

@@ -89,7 +89,7 @@ export default function ScheduleTable(props: {
       width: 100,
     },
     {
-      field: "Delete",
+      field: "delete",
       headerName: "",
       sortable: false,
       type: "actions",

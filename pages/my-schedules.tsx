@@ -17,6 +17,7 @@ import useHttp from "../hooks/useHttp";
 import ScheduleModel from "../model/Schedule";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useRouter } from "next/router";
+import useProtectedRoute from "../hooks/useProtectedRoute";
 
 const MySchedules: NextPage<{ schedules: ScheduleModel[] }> = (props) => {
   const [schedules, setSchedules] = useState(props.schedules || []);
@@ -26,6 +27,7 @@ const MySchedules: NextPage<{ schedules: ScheduleModel[] }> = (props) => {
 
   const http = useHttp();
   const router = useRouter();
+  useProtectedRoute();
 
   const fetchFavorites = useCallback(async () => {
     const get = http.get;
