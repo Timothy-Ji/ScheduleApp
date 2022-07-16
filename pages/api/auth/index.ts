@@ -1,30 +1,28 @@
-import { serialize } from "cookie";
+import { CookieSerializeOptions, serialize } from "cookie";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getAdmin } from "../../../db/firebase-admin";
+import { setCookie } from "nookies";
+import { app } from "../../../db/firebase-admin";
 
-// const expiresIn = 432000; // 5d
-const expiresIn = 600;
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const admin = getAdmin();
+// const expiresIn = 432000000; // 5d
+const expiresIn = 10 * 60 * 1000; // 10min
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     const idToken = req.body.token;
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const decodedToken = await app.auth().verifyIdToken(idToken);
     if (new Date().getTime() / 1000 - decodedToken.auth_time < 5 * 60) {
-      const cookie = await admin
+      const cookie = await app
         .auth()
         .createSessionCookie(idToken, { expiresIn });
 
       if (cookie) {
-        const options = {
-          maxAge: expiresIn,
+        const options: CookieSerializeOptions = {
+          maxAge: expiresIn / 1000,
           httpOnly: true,
           secure: true,
           path: "/",
+          sameSite: true,
         };
-        res.setHeader("Set-Cookie", serialize("user", cookie, options));
+        setCookie({ res }, "user", cookie, options);
         res.status(200).json({ ok: true });
       }
     } else {
@@ -32,3 +30,5 @@ export default async function handler(
     }
   }
 }
+
+export default handler;

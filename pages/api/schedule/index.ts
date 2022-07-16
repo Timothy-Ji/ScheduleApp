@@ -1,11 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { addSchedule, getSchedules } from "../../../db/schedule";
+import userschedules from "../../../db/user-schedules";
 import ScheduleModel, { ScheduleSchema } from "../../../model/Schedule";
-
+import { getAuthInfoFromRequest } from "../../../util/getAuthInfo";
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<ScheduleModel[] | ScheduleModel | {} | []>
 ) {
+  const authInfo = await getAuthInfoFromRequest(req);
+
   if (req.method === "GET") {
     const schedules: ScheduleModel[] = await getSchedules();
 
@@ -24,6 +27,7 @@ export default async function handler(
     const scheduleParseResult = schema.safeParse(req.body.schedule);
     if (scheduleParseResult.success) {
       const addedSchedule = await addSchedule(scheduleParseResult.data);
+      await userschedules.add(authInfo.uid, addedSchedule.id);
       res.status(200).json(addedSchedule);
     } else {
       res.status(422).json({ ok: false, error: scheduleParseResult.error });

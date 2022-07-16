@@ -11,13 +11,15 @@ import {
   Auth,
   signOut,
   signInWithEmailAndPassword,
+  inMemoryPersistence,
 } from "firebase/auth";
 import useHttp from "../hooks/useHttp";
 import { useRouter } from "next/router";
 
 type AuthContextType = {
   isAuthenticated: boolean;
-  auth: Auth;
+  uid: string;
+  email: string;
   signup: (email: string, password: string) => Promise<void>;
   signin: (email: string, password: string) => Promise<void>;
   signout: () => Promise<void>;
@@ -25,16 +27,25 @@ type AuthContextType = {
 
 const AuthContext = React.createContext<AuthContextType>({
   isAuthenticated: false,
-  auth: undefined,
+  uid: "",
+  email: "",
   signup: async () => {},
   signin: async () => {},
   signout: async () => {},
 });
 
-const auth = getAuth();
 export const AuthContextProvider: React.FC<PropsWithChildren> = (props) => {
+  const [auth] = useState(getAuth());
+  const [authInfo, setAuthInfo] = useState({
+    authenticated: false,
+    uid: undefined,
+    email: undefined,
+  });
   const http = useHttp();
-  const router = useRouter();
+
+  useEffect(() => {
+    auth.setPersistence(inMemoryPersistence);
+  }, [auth]);
 
   const signup = async (email: string, password: string) => {
     const userCred = await createUserWithEmailAndPassword(
@@ -42,46 +53,46 @@ export const AuthContextProvider: React.FC<PropsWithChildren> = (props) => {
       email,
       password
     );
-    postUserToken(await userCred.user.getIdToken());
+    await postUserToken(await userCred.user.getIdToken());
+    verify();
   };
 
   const signin = async (email: string, password: string) => {
     const userCred = await signInWithEmailAndPassword(auth, email, password);
-    postUserToken(await userCred.user.getIdToken());
+    await postUserToken(await userCred.user.getIdToken());
+    verify();
   };
 
   const signout = async () => {
     await signOut(auth);
+    await http.post("api/auth/signout");
+    verify();
   };
 
   const postUserToken = async (token: string) => {
-    await http.post("api/auth", {
-      body: token,
-    });
+    await http.post("api/auth", {}, { token });
   };
 
-  const redirectToLogin = useCallback(() => {
-    console.log(router.pathname);
-    if (!router.pathname.startsWith("/login")) {
-      router.push({
-        pathname: "/login",
-      });
-    }
-  }, [router]);
-
-  // useEffect(() => {
-  //   if (true) {
-  //     redirectToLogin();
-  //   }
-  // }, [redirectToLogin]);
-
   const ctx: AuthContextType = {
-    isAuthenticated: Boolean(auth.currentUser),
-    auth,
+    isAuthenticated: authInfo.authenticated,
+    uid: authInfo.uid,
+    email: authInfo.email,
     signup,
     signin,
     signout,
   };
+
+  const verify = useCallback(async () => {
+    const httppost = http.post;
+    const authInfo: { authenticated: boolean; uid: string; email: string } =
+      await httppost("/api/auth/verify");
+    setAuthInfo(authInfo);
+  }, [http.post]);
+
+  useEffect(() => {
+    (async () => await verify())();
+  }, [verify]);
+
   return (
     <AuthContext.Provider value={ctx}>{props.children}</AuthContext.Provider>
   );

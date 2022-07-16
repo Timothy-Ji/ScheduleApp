@@ -2,23 +2,21 @@ import "firebase/auth";
 import { app } from "../db/firebase-admin";
 import AuthClaims from "./AuthClaims";
 
-async function verifyAuth(sessCookie: string): Promise<AuthClaims> {
+async function verifyAuthCookie(sessCookie: string): Promise<AuthClaims> {
   try {
     const claims = await app.auth().verifySessionCookie(sessCookie, true);
-    const status = {
+    return {
       authenticated: true,
       uid: claims.uid,
       email: claims.email,
     };
-    return status;
-    return {
-      authenticated: true,
-    };
   } catch {
     return {
       authenticated: false,
+      uid: "",
+      email: "",
     };
   }
 }
 
-export default verifyAuth;
+export default verifyAuthCookie;

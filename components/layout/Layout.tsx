@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import React, { ComponentType } from "react";
+import ProtectedRoute from "../ProtectedRoute";
 import ResponsiveAppBar from "./ResponsiveAppBar";
 
 const Layout = <P,>(Component: ComponentType<P>): ComponentType<P> => {
@@ -12,7 +13,7 @@ const Layout = <P,>(Component: ComponentType<P>): ComponentType<P> => {
     </Box>
   );
 
-  return Layout;
+  return ProtectedRoute(Layout);
 };
 
 export default Layout;

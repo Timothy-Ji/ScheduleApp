@@ -1,5 +1,6 @@
 import { firestore as db } from "./firebase-admin";
 import ScheduleModel, { ScheduleEvent } from "../model/Schedule";
+import userschedules from "./user-schedules";
 
 const timestampToDate = (schedule: any) => {
   return {
@@ -56,5 +57,6 @@ export const updateSchedule = async (
 export const deleteSchedule = async (
   id: string
 ): Promise<FirebaseFirestore.WriteResult> => {
+  userschedules.deleteByScheduleId(id);
   return await schedules.doc(id).delete();
 };

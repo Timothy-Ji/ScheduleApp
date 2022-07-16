@@ -1,15 +1,24 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Button, DialogTitle, TextField } from "@mui/material";
+import { useContext } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { SignUpData, SignUpFormSchema } from "../../model/AuthData";
+import AuthContext from "../../context/AuthContext";
+import { SignInData, SignInFormSchema } from "../../model/AuthData";
 
 const SignInForm = () => {
+  const authCtx = useContext(AuthContext);
+
   const {
     handleSubmit,
     control,
     reset,
     formState: { errors },
-  } = useForm<SignUpData>({ resolver: zodResolver(SignUpFormSchema) });
+  } = useForm<SignInData>({ resolver: zodResolver(SignInFormSchema) });
+
+  const handleSignIn = (data: SignInData) => {
+    authCtx.signin(data.email!, data.password!);
+    reset();
+  };
   return (
     <Box sx={{ maxWidth: 400 }}>
       <form>
@@ -45,7 +54,7 @@ const SignInForm = () => {
               margin="dense"
               id="password"
               label="Password"
-              type="text"
+              type="password"
               fullWidth
               variant="standard"
               required={true}
@@ -53,7 +62,9 @@ const SignInForm = () => {
           )}
         />
         <Box display="flex" justifyContent="right">
-          <Button variant="contained">Sign In</Button>
+          <Button variant="contained" onClick={handleSubmit(handleSignIn)}>
+            Sign In
+          </Button>
         </Box>
       </form>
     </Box>

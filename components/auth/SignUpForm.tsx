@@ -1,15 +1,24 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Button, TextField } from "@mui/material";
+import { useContext } from "react";
 import { Controller, useForm } from "react-hook-form";
+import AuthContext from "../../context/AuthContext";
 import { SignUpData, SignUpFormSchema } from "../../model/AuthData";
 
 const SignUpForm = () => {
+  const authCtx = useContext(AuthContext);
   const {
     handleSubmit,
     control,
     reset,
     formState: { errors },
   } = useForm<SignUpData>({ resolver: zodResolver(SignUpFormSchema) });
+
+  const handleSignUp = (data: SignUpData) => {
+    authCtx.signup(data.email, data.password);
+    reset();
+  };
+
   return (
     <Box sx={{ maxWidth: 400 }}>
       <form>
@@ -45,7 +54,7 @@ const SignUpForm = () => {
               margin="dense"
               id="password"
               label="Password"
-              type="text"
+              type="password"
               fullWidth
               variant="standard"
               required={true}
@@ -64,7 +73,7 @@ const SignUpForm = () => {
               margin="dense"
               id="confirm"
               label="Confirm Password"
-              type="text"
+              type="password"
               fullWidth
               variant="standard"
               required={true}
@@ -72,7 +81,9 @@ const SignUpForm = () => {
           )}
         />
         <Box display="flex" justifyContent="right">
-          <Button variant="contained">Sign Up</Button>
+          <Button variant="contained" onClick={handleSubmit(handleSignUp)}>
+            Sign Up
+          </Button>
         </Box>
       </form>
     </Box>

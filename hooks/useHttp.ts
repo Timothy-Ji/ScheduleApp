@@ -1,6 +1,14 @@
 import { useCallback } from "react";
 
-const useHttp = () => {
+const useHttp = (credentials?: boolean) => {
+  const secureOptions = credentials
+    ? {
+        credentials: "include",
+        headers: {
+          "X-CSRF-TOKEN": document.cookie,
+        },
+      }
+    : {};
   const get = useCallback(
     async <ReturnType>(
       input: RequestInfo | URL,

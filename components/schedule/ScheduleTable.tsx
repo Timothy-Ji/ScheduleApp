@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import ScheduleModel from "../../model/Schedule";
@@ -8,6 +8,9 @@ import DeleteButton from "../DeleteButton";
 import { Grid, Typography } from "@mui/material";
 import WebAssetOffIcon from "@mui/icons-material/WebAssetOff";
 import { GridRenderCellParams } from "@mui/x-data-grid";
+import AuthContext from "../../context/AuthContext";
+import useHttp from "../../hooks/useHttp";
+import AppUser from "../../model/AppUser";
 
 const NoRowsOverlay = () => {
   return (
@@ -36,6 +39,23 @@ export default function ScheduleTable(props: {
   onFavoriteChange: (id: string, isFavorited: boolean) => void;
   onDelete: (id: string) => void;
 }) {
+  const authCtx = useContext(AuthContext);
+  const http = useHttp();
+  const [ownerMap, setOwnerMap] = useState(new Map<string, AppUser>());
+
+  useEffect(() => {
+    (async () => {
+      const scheduleIds = props.schedules.map((sched) => sched.id);
+      const get = http.get;
+      const newOwnerMap = new Map<string, AppUser>();
+      for (let scheduleId of scheduleIds) {
+        const owner: AppUser = await get(`/api/schedule/${scheduleId}/owner`);
+        newOwnerMap.set(scheduleId, owner);
+      }
+      setOwnerMap(newOwnerMap);
+    })();
+  }, [props.schedules, http.get]);
+
   const columns: GridColDef[] = [
     {
       field: "edit",
@@ -50,23 +70,23 @@ export default function ScheduleTable(props: {
         <EditButton onClick={() => props.onEdit(params.row.id)} />
       ),
     },
-    {
-      field: "favorite",
-      headerName: "",
-      type: "actions",
-      sortable: false,
-      filterable: false,
-      disableColumnMenu: true,
-      width: 50,
-      renderCell: (params: GridRenderCellParams) => (
-        <Favorite
-          isFavorited={params.row.favorite}
-          onClick={() =>
-            props.onFavoriteChange(params.row.id, !params.row.favorite)
-          }
-        />
-      ),
-    },
+    // {
+    //   field: "favorite",
+    //   headerName: "",
+    //   type: "actions",
+    //   sortable: false,
+    //   filterable: false,
+    //   disableColumnMenu: true,
+    //   width: 50,
+    //   renderCell: (params: GridRenderCellParams) => (
+    //     <Favorite
+    //       isFavorited={params.row.favorite}
+    //       onClick={() =>
+    //         props.onFavoriteChange(params.row.id, !params.row.favorite)
+    //       }
+    //     />
+    //   ),
+    // },
     {
       field: "title",
       headerName: "Schedule",
@@ -86,7 +106,11 @@ export default function ScheduleTable(props: {
     {
       field: "owner",
       headerName: "Owner",
-      width: 100,
+      width: 150,
+      valueFormatter(params) {
+        if (params.value?.uid === authCtx.uid) return "me";
+        return params.value?.email;
+      },
     },
     {
       field: "delete",
@@ -98,20 +122,25 @@ export default function ScheduleTable(props: {
       disableColumnMenu: true,
       width: 50,
       align: "right",
-      renderCell: (params: GridRenderCellParams) => (
-        <DeleteButton
-          onClick={() => {
-            props.onDelete(params.row.id);
-          }}
-        />
-      ),
+      renderCell: (params: GridRenderCellParams) => {
+        if (params.row.owner?.uid !== authCtx.uid) {
+          return <div></div>;
+        }
+        return (
+          <DeleteButton
+            onClick={() => {
+              props.onDelete(params.row.id);
+            }}
+          />
+        );
+      },
     },
   ];
 
   const rows = props.schedules.map((schedule) => {
     return {
       id: schedule.id,
-      favorite: props.favoriteIds.includes(schedule.id),
+      // favorite: props.favoriteIds.includes(schedule.id),
       title: schedule.title,
       description: schedule.description,
       dateCreated: new Date(schedule.dateCreated).toLocaleString("en-US", {
@@ -124,7 +153,7 @@ export default function ScheduleTable(props: {
         year: "numeric",
         month: "long",
       }),
-      owner: "me",
+      owner: ownerMap.get(schedule.id),
     };
   });
 

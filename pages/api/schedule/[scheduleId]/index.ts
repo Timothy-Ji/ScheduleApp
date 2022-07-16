@@ -4,7 +4,9 @@ import {
   getScheduleById,
   updateSchedule,
 } from "../../../../db/schedule";
+import userschedules from "../../../../db/user-schedules";
 import { ScheduleSchema } from "../../../../model/Schedule";
+import { getAuthInfoFromRequest } from "../../../../util/getAuthInfo";
 
 const baseScheduleSchema = ScheduleSchema.pick({
   title: true,
@@ -16,6 +18,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const scheduleId = <string>req.query.scheduleId;
+  const authInfo = await getAuthInfoFromRequest(req);
   if (req.method === "GET") {
     try {
       const schedule = await getScheduleById(scheduleId);
@@ -40,8 +43,15 @@ export default async function handler(
     }
   } else if (req.method === "DELETE") {
     try {
-      deleteSchedule(scheduleId);
-      res.status(200).json({ ok: true });
+      const ownerId = await userschedules.getOwner(scheduleId);
+      if (ownerId === authInfo.uid) {
+        deleteSchedule(scheduleId);
+        res.status(200).json({ ok: true });
+      } else {
+        res
+          .status(403)
+          .json({ ok: false, message: "You do not own this resource." });
+      }
     } catch {
       res.status(400).json({ ok: false });
     }

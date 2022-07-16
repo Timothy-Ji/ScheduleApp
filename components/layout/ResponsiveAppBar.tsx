@@ -20,6 +20,7 @@ import AuthDialog from "../auth/AuthDialog";
 import AuthContext from "../../context/AuthContext";
 
 const ResponsiveAppBar = () => {
+  const authCtx = useContext(AuthContext);
   const pages = [
     { name: "Home", href: "/" },
     { name: "My Schedules", href: "/my-schedules" },
@@ -50,7 +51,11 @@ const ResponsiveAppBar = () => {
     setAnchorElUser(null);
   };
 
-  const handleSettingClicked = (setting: any) => {};
+  const handleSettingClicked = (setting: any) => {
+    if (setting === "Logout") {
+      authCtx.signout();
+    }
+  };
 
   return (
     <AppBar position="static">
@@ -177,6 +182,11 @@ const ResponsiveAppBar = () => {
                 open={Boolean(anchorElUser)}
                 onClose={handleCloseUserMenu}
               >
+                <MenuItem>
+                  <Typography textAlign="center" sx={{ fontWeight: 700 }}>
+                    {authCtx.email}
+                  </Typography>
+                </MenuItem>
                 {settings.map((setting) => (
                   <MenuItem
                     key={setting}
