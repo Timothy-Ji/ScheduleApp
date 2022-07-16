@@ -60,3 +60,14 @@ export const deleteSchedule = async (
   userschedules.deleteByScheduleId(id);
   return await schedules.doc(id).delete();
 };
+
+const getByIds = async (ids: string[]): Promise<ScheduleModel[]> => {
+  const scheduleRefs = ids.map((id) => db.doc("schedule/" + id));
+  if (scheduleRefs.length === 0) return [];
+  const docSnaps = await db.getAll(...scheduleRefs);
+  return docSnaps.map((snap) => timestampToDate(snap.data()));
+};
+
+const schedule = { getByIds };
+
+export default schedule;

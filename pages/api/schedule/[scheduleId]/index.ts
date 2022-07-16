@@ -19,6 +19,15 @@ export default async function handler(
 ) {
   const scheduleId = <string>req.query.scheduleId;
   const authInfo = await getAuthInfoFromRequest(req);
+  const ownerId = await userschedules.getOwner(scheduleId);
+
+  if (ownerId !== authInfo.uid) {
+    res.status(403).json({
+      ok: false,
+      message: "You do not have permission to access to this resource.",
+    });
+    return;
+  }
   if (req.method === "GET") {
     try {
       const schedule = await getScheduleById(scheduleId);
@@ -43,7 +52,6 @@ export default async function handler(
     }
   } else if (req.method === "DELETE") {
     try {
-      const ownerId = await userschedules.getOwner(scheduleId);
       if (ownerId === authInfo.uid) {
         deleteSchedule(scheduleId);
         res.status(200).json({ ok: true });

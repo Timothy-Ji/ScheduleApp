@@ -9,11 +9,23 @@ export default async function handler(
 ) {
   const authInfo = await getAuthInfoFromRequest(req);
 
-  if (req.method === "GET") {
-    const schedules: ScheduleModel[] = await getSchedules();
+  if (!authInfo.authenticated) {
+    res.status(401).json({
+      ok: false,
+      message: "You must be authenticated to access this resource",
+    });
+    return;
+  }
 
-    if (req.query.owned !== undefined) res.status(200).json(schedules);
-    else res.status(401).json([]);
+  if (req.method === "GET") {
+    let schedules = [];
+
+    if (req.query.owned !== null) {
+      const owned = await userschedules.getSchedules(authInfo.uid);
+      schedules = [...schedules, ...owned];
+    }
+
+    res.status(200).json(schedules);
   } else if (req.method === "POST") {
     if (!req.body.schedule) {
       res.status(400).json({ ok: false });

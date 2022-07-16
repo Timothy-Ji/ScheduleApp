@@ -18,6 +18,8 @@ import ScheduleModel from "../model/Schedule";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useRouter } from "next/router";
 import getAuthInfo from "../util/getAuthInfo";
+import { getSchedules } from "../db/schedule";
+import userschedules from "../db/user-schedules";
 
 const MySchedules: NextPage<{ schedules: ScheduleModel[] }> = (props) => {
   const [schedules, setSchedules] = useState(props.schedules || []);
@@ -36,7 +38,7 @@ const MySchedules: NextPage<{ schedules: ScheduleModel[] }> = (props) => {
 
   const fetchSchedules = useCallback(async () => {
     const get = http.get;
-    const schedules = await get<ScheduleModel[]>("/api/schedule?owned");
+    const schedules = await get<ScheduleModel[]>("/api/schedule?owned&shared");
     await fetchFavorites();
     setSchedules(schedules);
     setIsLoading(false);
@@ -144,5 +146,7 @@ export default Layout(MySchedules);
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const auth = await getAuthInfo(context);
-  return { props: { schedules: [] } };
+  const scheds = await userschedules.getSchedules(auth.uid);
+  
+  return { props: { schedules: JSON.parse(JSON.stringify(scheds)) } };
 }
