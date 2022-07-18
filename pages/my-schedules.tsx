@@ -147,6 +147,6 @@ export default Layout(MySchedules);
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const auth = await getAuthInfo(context);
   const scheds = await userschedules.getSchedules(auth.uid);
-  
+
   return { props: { schedules: JSON.parse(JSON.stringify(scheds)) } };
 }

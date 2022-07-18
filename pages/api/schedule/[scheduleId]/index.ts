@@ -20,8 +20,9 @@ export default async function handler(
   const scheduleId = <string>req.query.scheduleId;
   const authInfo = await getAuthInfoFromRequest(req);
   const ownerId = await userschedules.getOwner(scheduleId);
+  const sharedIds = await userschedules.getShared(scheduleId);
 
-  if (ownerId !== authInfo.uid) {
+  if (ownerId !== authInfo.uid && !sharedIds.includes(authInfo.uid)) {
     res.status(403).json({
       ok: false,
       message: "You do not have permission to access to this resource.",

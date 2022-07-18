@@ -19,15 +19,52 @@ const getSchedules = async (ownerId: string): Promise<ScheduleModel[]> => {
   const schedIds = relationQuerySnap.docs.map(
     (docSnap) => docSnap.data().scheduleId
   );
-  
-  return await schedule.getByIds(schedIds);
+
+  const sharedQuery = await userschedulesdb
+    .where("shared", "array-contains", ownerId)
+    .get();
+  const sharedSchedIds = sharedQuery.docs.map(
+    (docSnap) => docSnap.data().scheduleId
+  );
+
+  return await schedule.getByIds([...schedIds, ...sharedSchedIds]);
 };
 
 const add = async (userId: string, scheduleId: string) => {
   await userschedulesdb.add({
     userId,
     scheduleId,
+    shared: [],
   });
+};
+
+const addShared = async (scheduleId: string, userId: string) => {
+  const docSnap = await getDoc(scheduleId);
+  const shared: string[] = docSnap.data().shared;
+  if (!shared.includes(scheduleId)) {
+    shared.push(userId);
+    docSnap.ref.update("shared", shared);
+  }
+};
+const getDoc = async (scheduleId: string) => {
+  const querySnap = await userschedulesdb
+    .where("scheduleId", "==", scheduleId)
+    .limit(1)
+    .get();
+  const docSnap = querySnap.docs[0];
+  return docSnap;
+};
+const deleteShared = async (scheduleId: string, userId: string) => {
+  const docSnap = await getDoc(scheduleId);
+  const shared = docSnap.data().shared.filter((uid) => uid !== userId);
+  docSnap.ref.update("shared", shared);
+};
+
+const getShared = async (scheduleId: string): Promise<string[]> => {
+  const docSnap = await getDoc(scheduleId);
+  const shared: string[] = docSnap.data().shared;
+
+  return shared || [];
 };
 
 const deleteByScheduleId = async (scheduleId: string) => {
@@ -42,6 +79,9 @@ const userschedules = {
   add,
   getSchedules,
   deleteByScheduleId,
+  addShared,
+  deleteShared,
+  getShared,
 };
 
 export default userschedules;

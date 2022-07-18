@@ -65,12 +65,12 @@ export const AuthContextProvider: React.FC<PropsWithChildren> = (props) => {
 
   const signout = async () => {
     await signOut(auth);
-    await http.post("api/auth/signout");
+    await http.post("/api/auth/signout");
     verify();
   };
 
   const postUserToken = async (token: string) => {
-    await http.post("api/auth", {}, { token });
+    await http.post("/api/auth", {}, { token });
   };
 
   const ctx: AuthContextType = {

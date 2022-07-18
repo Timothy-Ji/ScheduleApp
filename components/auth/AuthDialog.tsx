@@ -12,8 +12,6 @@ import SignUpForm from "./SignUpForm";
 
 const AuthDialog = (props: { open: boolean }) => {
   const [isSignUp, setIsSignUp] = useState(false);
-  if (isSignUp) {
-  }
 
   return (
     <Box>
