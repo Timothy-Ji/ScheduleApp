@@ -14,7 +14,6 @@ import {
   inMemoryPersistence,
 } from "firebase/auth";
 import useHttp from "../hooks/useHttp";
-import { useRouter } from "next/router";
 
 type AuthContextType = {
   isAuthenticated: boolean;
