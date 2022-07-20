@@ -50,10 +50,7 @@ export const SchedulePermissionUserItem = (props: {
   );
 };
 
-const SchedulePermissions = (props: {
-  scheduleId: string;
-  isAppUserOwner: boolean;
-}) => {
+const SchedulePermissions = (props: { scheduleId: string }) => {
   const [shared, setShared] = useState<AppUser[]>([]);
   const [owner, setOwner] = useState<AppUser>();
   const [userEmailInput, setUserEmailInput] = useState("");
