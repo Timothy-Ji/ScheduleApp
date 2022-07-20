@@ -125,7 +125,6 @@ const SchedulePermissions = (props: { scheduleId: string }) => {
             />
           );
         })}
-      ;
       <Box
         display="flex"
         sx={{ m: 2 }}
