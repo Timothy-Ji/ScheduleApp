@@ -4,7 +4,8 @@ import { setCookie } from "nookies";
 import { app } from "../../../db/firebase-admin";
 
 // const expiresIn = 432000000; // 5d
-const expiresIn = 10 * 60 * 1000; // 10min
+// const expiresIn = 10 * 60 * 1000; // 10min
+const expiresIn: number = parseInt(process.env.AUTH_VALIDITY_LENGTH);
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     const idToken = req.body.token;
